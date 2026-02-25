@@ -30,5 +30,95 @@ const createDish = asyncHandler(async(req, res) => {
     });
     res.status(200).json(dish);
 });
+// get all dish
+// GET
+// @route /dish
+const getAllDishes = asyncHandler(async (req,res)=> {
+    try {
+        const dishes = await Dish.find().populate("category","name")
 
-module.exports = {createDish};
+        res.json(dishes)
+    }
+    catch(err){
+        res.status(500).json({message: err.message});
+    }
+});
+
+// get ONE dish
+// GET
+// @route /dish/;id
+const getOneDish = asyncHandler(async(req,res)=> {
+    const dish = await Dish.findById(req.params.id);
+
+    if (!dish) {
+        res.status(404);
+        throw new Error("Dish not found");
+
+    }
+    res.status(200).json(dish);
+})
+
+// update dish
+// PUT
+// @route /dish/;id
+// PRIVATE admin
+
+
+const updateDish = asyncHandler(async(req, res)=>{
+    const dish = await Dish.findById(req.params.id);
+    if(!dish) {
+        res.status(404);
+        throw new Error("Dish not foud");
+    }
+    if(!req.user) {
+        res.status(401);
+        throw new Error("Dish not foud");
+    }
+    if(dish.userID.toString() !== req.user.id && req.user.role !== "admin"){
+        res.status(403);
+        throw new Error("User is not allowed to reach this content");
+    }
+
+    if(dish.userID.toString() === req.user.id || req.user.role === "admin"){
+        const updateDish = await Dish.findByIdAndUpdate(req.params.id, req.body,{
+            new: true,
+        });
+        
+        res.status(200).json(updateDish);
+    }
+    });
+
+// delete dish
+// DELETE
+// @route /dish/;id
+// PRIVATE admin
+const deleteDish=asyncHandler(async(req,res)=>{
+    const dish = await Dish.findById(req.params.id);
+    if(!dish) {
+        res.status(404);
+        throw new Error("Dish not foud");
+    }
+    if(!req.user) {
+        res.status(401);
+        throw new Error("Dish not foud");
+    }
+    if(dish.userID.toString() !== req.user.id && req.user.role !== "admin"){
+        res.status(403);
+        throw new Error("User is not allowed to reach this content");
+    }
+
+    await Dish.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({id: req.params.id});
+});
+
+
+module.exports = {
+    createDish, 
+    getAllDishes, 
+    getOneDish, 
+    updateDish,
+    deleteDish,
+
+
+};
