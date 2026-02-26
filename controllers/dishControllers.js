@@ -112,6 +112,39 @@ const deleteDish=asyncHandler(async(req,res)=>{
     res.status(200).json({id: req.params.id});
 });
 
+// rate/like dish
+// POST
+// route /dishes/:id/rate
+// PRIVATE
+
+const rateDish = asyncHandler(async(req, res) => {
+        const dish = await Dish.findById(req.params.id);
+    if(!dish) {
+        res.status(404);
+        throw new Error("Dish not foud");
+    }
+    
+    const userId = req.user.id;
+
+    const alreadyRated = dish.ratedBy.includes(userId);
+    if (alreadyRated){
+        dish.ratingCount = Math.max(0, dish.ratingCount - 1);
+        dish.ratedBy = dish.ratedBy.filter(id => id.toString() !== userId);
+    }else{
+        dish.ratingCount += 1; // dish.ratingCount = dish.ratingCount += 1;
+        dish.ratedBy.push(userId);
+    }
+
+    await dish.save();
+    res.json({
+        ratingCount: dish.ratingCount,
+        ratedBy: dish.ratedBy,
+        toggled: !alreadyRated,
+    })
+});
+
+
+
 
 module.exports = {
     createDish, 
@@ -119,6 +152,6 @@ module.exports = {
     getOneDish, 
     updateDish,
     deleteDish,
-
+    rateDish,
 
 };

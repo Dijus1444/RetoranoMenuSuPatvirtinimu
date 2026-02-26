@@ -16,16 +16,22 @@ const {
     getAllDishes,
     getOneDish,
     updateDish,
-    deleteDish
+    deleteDish,
+    rateDish,
 } = require("../controllers/dishControllers.js");
 const { protectAdmin } = require("../middlewares/adminAuthMiddleware.js");
+const { protect } = require("../middlewares/authMiddleware.js");
+
 
 router.route("/").post(protectAdmin, createDish);
 router.route("/all").get(getAllDishes);
 
-router.route("/:id")
+router
+.route("/:id")
 .get(getOneDish)
 .put(protectAdmin, updateDish)
 .delete(protectAdmin, deleteDish);
+
+router.route("/:id/rate").post(protect, rateDish);
 
 module.exports = router;
